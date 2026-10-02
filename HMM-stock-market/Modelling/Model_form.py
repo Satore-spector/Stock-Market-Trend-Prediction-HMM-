@@ -78,7 +78,7 @@ for key, i in data_frames.items():
     print("\n")
 
 
-p_bull, p_bear, p_chop = 0.80, 0.80, 0.60
+p_bull, p_bear, p_chop = 0.95, 0.95, 0.92
 
 states = ["Bull", "Bear", "Chop"]
 
@@ -90,20 +90,21 @@ A = np.array([
 assert np.allclose(A.sum(axis=1), 1.0)
 
 emis = {
-    "Bull": {"mom": ( 1.0, 1.0), "atr": (-0.5, 1.0)},
-    "Bear": {"mom": (-1.0, 1.0), "atr": ( 1.0, 1.0)},
-    "Chop": {"mom": ( 0.0, 0.5), "atr": ( 1.5, 1.0)},
+    "Bull": {"mom": ( 1.0, 0.8), "atr": (-0.3, 1.0), "er": (0.30, 0.15)},
+    "Bear": {"mom": (-1.0, 0.8), "atr": ( 0.5, 1.0), "er": (0.30, 0.15)},
+    "Chop": {"mom": ( 0.0, 0.6), "atr": ( 0.0, 1.0), "er": (0.12, 0.08)},
 }
-
 mom_dict = {}
 atr_dict ={}
+er_dict = {}
 
 dicts = [mom_dict, atr_dict]
 
 for key, i in data_frames.items():
     d = i.dropna(subset=['obs_mom', 'obs_vol'])
-    mom_dict[f"{key}_mom"] = d['obs_mom'].clip(-3, 3)
-    atr_dict[f"{key}_atr"] = d['obs_vol'].clip(-3, 3) 
+    mom_dict[f"{key}_mom"] = d['obs_mom'].clip(-4, 4)
+    atr_dict[f"{key}_atr"] = d['obs_vol'].clip(-4, 4)
+    er_dict[f"{key}_er"] = d['obs_er']
 
 for d in dicts:
     for key, i in d.items():
@@ -113,14 +114,16 @@ for d in dicts:
 
 L_dict = {} #likelyhood matrix
 
-for key in data_frames:   
+for key in data_frames:
     mom_series = mom_dict[f"{key}_mom"]
     atr_series = atr_dict[f"{key}_atr"]
+    er_series = er_dict[f"{key}_er"]
     L = np.column_stack([
-        norm.pdf(mom_series, *emis[s]["mom"]) * norm.pdf(atr_series, *emis[s]["atr"])
+        norm.pdf(mom_series, *emis[s]["mom"])
+        * norm.pdf(atr_series, *emis[s]["atr"])
+        * norm.pdf(er_series, *emis[s]["er"])
         for s in states
     ])
-    
     # Save matrix to avoid overwriting L on the next loop
     L_dict[key] = L
 
@@ -130,7 +133,7 @@ probs_dict = {}
 
 for key in data_frames:
     L = L_dict[key]
-    dates = data_frames[key]['Date']
+    dates = data_frames[key].dropna(subset=['obs_mom', 'obs_vol'])['Date']
 
     post = np.full(3, 1 / 3)
     out = []
@@ -178,3 +181,9 @@ for key, probs in probs_dict.items():
     plt.savefig(f"{key}_regime_check.png")
     plt.show()
 
+
+grid = np.array(np.meshgrid(np.linspace(-3,3,121), np.linspace(-3,3,121))).reshape(2,-1).T
+lik = np.column_stack([norm.pdf(grid[:,0], *emis[s]["mom"]) * norm.pdf(grid[:,1], *emis[s]["atr"]) for s in states])
+print(pd.Series(np.array(states)[lik.argmax(1)]).value_counts(normalize=True))
+
+mom_dict = {}
