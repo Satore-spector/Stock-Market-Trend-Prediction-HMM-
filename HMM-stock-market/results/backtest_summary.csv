@@ -1,0 +1,4 @@
+stock,buy_hold_ann_%,buy_hold_sharpe,buy_hold_maxDD_%,bull_only_ann_%,bull_only_sharpe,bull_only_maxDD_%,trades,time_in_market_%
+ITC.NS,-1.83,-0.1,-44.93,6.07,0.61,-15.11,30,24.75
+MARUTI.NS,7.93,0.38,-33.49,2.04,0.16,-15.59,50,35.03
+TCS.NS,-6.94,-0.31,-53.39,-2.63,-0.26,-22.0,40,28.53

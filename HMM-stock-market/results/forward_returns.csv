@@ -1,0 +1,10 @@
+regime,stock,next_1d_%,next_20d_%,days
+Bear,ITC.NS,0.0,-0.58,233
+Bull,ITC.NS,0.11,0.65,244
+Chop,ITC.NS,-0.07,-0.31,509
+Bear,MARUTI.NS,-0.15,-0.04,192
+Bull,MARUTI.NS,0.04,0.07,345
+Chop,MARUTI.NS,0.1,1.57,448
+Bear,TCS.NS,-0.09,-0.32,288
+Bull,TCS.NS,-0.02,-0.84,281
+Chop,TCS.NS,0.01,-0.42,416
