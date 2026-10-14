@@ -31,7 +31,7 @@ Tested on ITC, Maruti Suzuki and TCS, with daily data from Oct 2022 to Sep 2026.
 
 ## Results
 
-| Stock | Buy & hold (per yr) | Bull-only (per yr) | Buy & hold max drawdown | Bull-only max drawdown | Time in market |
+| Stock | Buy & hold (per yr) | Bull-only (per yr) | Buy & hold max drawdown | Bull-only max drawdown | Time in market |git
 |---|---|---|---|---|---|
 | ITC | −1.8% | **+6.1%** | −44.9% | **−15.1%** | 25% |
 | Maruti | **+7.9%** | +2.0% | −33.5% | **−15.6%** | 35% |
