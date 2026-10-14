@@ -22,10 +22,11 @@ from shiny import App, reactive, render, ui
 from shiny.types import SilentException
 
 # ------------------------------------------------------------------ settings
-# theme: dark red page, black accents, white bold Arial text
-PAGE, CARD, BLK, INK, GREY = "#6b0f1a", "#4a0912", "#000000", "#ffffff", "#b5b5b5"
-REGIME_COLOR = {"Bull": INK, "Chop": GREY, "Bear": BLK}
-STOCK_COLOR = {"ITC": INK, "MARUTI": BLK, "TCS": GREY}
+# theme: white page, black bold Arial text, red accents
+PAGE, CARD, INK, RED, GREY, LIGHT = "#ffffff", "#ffffff", "#111111", "#c8102e", "#9a9a9a", "#c9c9c9"
+BLK = INK
+REGIME_COLOR = {"Bull": INK, "Chop": LIGHT, "Bear": RED}
+STOCK_COLOR = {"ITC": INK, "MARUTI": RED, "TCS": GREY}
 STOCKS = ["ITC", "MARUTI", "TCS"]
 STATES = ["Bull", "Bear", "Chop"]
 TEAM = [("Sherin Susan David", "25060242127"), ("Teerth Narang", "25060242153")]
@@ -42,10 +43,27 @@ for cand in [os.path.join(HERE, "..", "Data_extractor"), os.path.join(HERE, "Dat
 else:
     raise FileNotFoundError("Can't find ITC.NS.csv. Run Data_extractor/extract.py first.")
 
+# EDA figures made by Modelling/make_figures.py (saved in results/)
+RESULTS_DIR = next((os.path.abspath(c) for c in [os.path.join(HERE, "..", "results"), os.path.join(HERE, "results")]
+                    if os.path.isdir(c)), os.path.join(HERE, "..", "results"))
+EDA_FIGS = [
+    ("eda_fig1", "figure_2_feature_distributions.png", "Feature distributions by hidden state",
+     "Each feature's distribution in each state learned by the data-fitted HMM (Baum-Welch, 2022–2024). Momentum separates the Down state "
+     "from the two uptrends, and volatility separates the calm uptrend from the volatile one. The efficiency ratio overlaps almost completely "
+     "across states, so the fitted model hardly uses it."),
+    ("eda_fig2", "figure_3_transition_heatmap.png", "Fitted state transition matrix",
+     "The chance of moving from one state (row) to another (column) the next day. All three states are very persistent: they stay put "
+     "96–98% of the time, which means regimes last about 27–39 trading days on average. Most switches go into or out of the Down state."),
+    ("eda_fig3", "figure_4_convergence.png", "Baum-Welch convergence across random restarts",
+     "How the model's fit (log-likelihood, higher is better) improves at each step of training, from 10 random starting points. Most "
+     "runs reach the same best fit within about 10–30 steps, but two (seeds 0 and 1) get stuck at a worse answer. This is why the "
+     "model is trained 10 times and the best run is kept."),
+]
+
 plt.rcParams.update({"font.size": 9, "font.family": ["Arial", "Liberation Sans", "DejaVu Sans"], "font.weight": "bold",
                      "axes.labelweight": "bold", "axes.titleweight": "bold", "axes.titlesize": 10, "axes.titlelocation": "left",
-                     "axes.spines.top": False, "axes.spines.right": False, "axes.edgecolor": BLK,
-                     "axes.grid": True, "grid.color": "#5e1a22", "axes.facecolor": CARD, "figure.facecolor": CARD,
+                     "axes.spines.top": False, "axes.spines.right": False, "axes.edgecolor": "#bbbbbb",
+                     "axes.grid": True, "grid.color": "#ececec", "axes.facecolor": CARD, "figure.facecolor": CARD,
                      "text.color": INK, "axes.labelcolor": INK, "xtick.color": INK, "ytick.color": INK,
                      "legend.frameon": False, "legend.labelcolor": INK})
 
@@ -353,39 +371,37 @@ def code_tab():
 
 # ------------------------------------------------------------------ UI
 CSS = f"""
-body, .bslib-page-navbar, .main, .tab-content, .bslib-sidebar-layout > .main {{ background: {PAGE} !important; color: {INK} !important; }}
+body, .bslib-page-navbar, .main, .tab-content {{ background: {PAGE} !important; color: {INK} !important; }}
 body, body * {{ font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important; }}
-body, p, li, td, th, label, span, div, a, h1, h2, h3, h4, h5, small, b {{ font-weight: 700 !important; color: {INK}; }}
-pre.codeblock, pre.codeblock * {{ font-family: Consolas, "Courier New", monospace !important; font-weight: 700 !important; }}
-.navbar {{ background: {BLK} !important; border-bottom: 3px solid {BLK} !important; }}
-.navbar .navbar-brand, .navbar .nav-link {{ color: {INK} !important; }}
-.navbar .nav-link.active {{ border-bottom: 3px solid {INK}; }}
-.bslib-sidebar-layout > .sidebar, .sidebar {{ background: {BLK} !important; color: {INK} !important; }}
-.bslib-sidebar-layout {{ --_border-color: {BLK}; --_toggle-bg: {BLK}; }}
-.card, .bslib-card, .accordion-item {{ background: {CARD} !important; color: {INK} !important; border: 1px solid {BLK} !important; border-top: 4px solid {BLK} !important; }}
-.card-header, .accordion-button {{ background: {BLK} !important; color: {INK} !important; border-bottom: 1px solid {BLK} !important; }}
-.accordion-button::after {{ filter: invert(1); }}
-.bslib-value-box, .value-box {{ background: {BLK} !important; color: {INK} !important; border: 0 !important; }}
-.bslib-value-box .value-box-value, .bslib-value-box .value-box-title {{ color: {INK} !important; }}
+body, p, li, td, th, label, span, div, a, h1, h2, h3, h4, h5, small, b, input, select, button {{ font-weight: 700 !important; }}
+pre.codeblock, pre.codeblock * {{ font-family: Consolas, "Courier New", monospace !important; }}
+.navbar {{ background: #ffffff !important; border-bottom: 3px solid {RED} !important; }}
+.navbar .navbar-brand {{ color: {INK} !important; }}
+.navbar .nav-link {{ color: {INK} !important; }}
+.navbar .nav-link.active {{ color: {RED} !important; border-bottom: 3px solid {RED}; }}
+.sidebar {{ background: #f6f6f6 !important; color: {INK} !important; }}
+.card, .bslib-card, .accordion-item {{ background: {CARD} !important; color: {INK} !important; border: 1px solid #e2e2e2 !important; border-top: 3px solid {RED} !important; }}
+.card-header {{ background: #ffffff !important; color: {INK} !important; border-bottom: 1px solid #e2e2e2 !important; }}
+.accordion-button {{ background: #ffffff !important; color: {INK} !important; }}
+.accordion-button:not(.collapsed) {{ color: {RED} !important; }}
+.bslib-value-box, .value-box {{ background: #ffffff !important; color: {INK} !important; border: 1px solid #e2e2e2 !important; border-left: 4px solid {RED} !important; }}
+.bslib-value-box .value-box-title {{ color: {INK} !important; }}
+.bslib-value-box .value-box-value {{ color: {RED} !important; }}
 table, .table {{ color: {INK} !important; --bs-table-color: {INK}; --bs-table-bg: transparent; }}
-.table th, .table td, table th, table td {{ border-color: {BLK} !important; background: transparent !important; color: {INK} !important; }}
-.form-control, .form-select, .selectize-input, .selectize-dropdown, input, select {{ background: {BLK} !important; color: {INK} !important; border: 1px solid {INK} !important; }}
-.form-select {{ background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important; background-repeat: no-repeat !important; background-position: right .75rem center !important; background-size: 16px 12px !important; }}
-.input-daterange .input-group-addon, .input-group-text {{ background: {BLK} !important; color: {INK} !important; border-color: {INK} !important; }}
-.btn-primary, .btn-primary:hover, .btn-primary:focus {{ background: {BLK} !important; border: 2px solid {INK} !important; color: {INK} !important; }}
-.alert-danger {{ background: {BLK} !important; color: {INK} !important; border: 2px solid {INK} !important; }}
-.text-muted {{ color: #e6c9cd !important; }}
-h2.hero span {{ color: {INK}; background: {BLK}; padding: 0 .35rem; }}
+.table th {{ border-bottom: 2px solid {INK} !important; }}
+.btn-primary, .btn-primary:hover, .btn-primary:focus {{ background: {RED} !important; border-color: {RED} !important; color: #ffffff !important; }}
+.form-control:focus, .form-select:focus {{ border-color: {RED} !important; box-shadow: 0 0 0 .2rem rgba(200,16,46,.2) !important; }}
+.alert-danger {{ border-left: 4px solid {RED} !important; }}
+h2.hero span {{ color: {RED}; }}
 .flow {{ display: flex; flex-wrap: wrap; align-items: stretch; gap: .5rem; margin: .5rem 0 1rem; }}
-.flow .step {{ flex: 1 1 9rem; border: 1px solid {BLK}; border-top: 4px solid {BLK}; border-radius: 6px; padding: .6rem .7rem; background: {CARD}; }}
+.flow .step {{ flex: 1 1 9rem; border: 1px solid #e2e2e2; border-top: 3px solid {RED}; border-radius: 6px; padding: .6rem .7rem; background: #ffffff; }}
 .flow .step b {{ display: block; margin-bottom: .2rem; }}
-.flow .step small {{ color: #e6c9cd; }}
-.flow .arrow {{ align-self: center; color: {BLK}; font-size: 1.2rem; }}
-pre.codeblock {{ background: {BLK} !important; color: {INK} !important; border-left: 4px solid {INK}; padding: .8rem; font-size: .8rem; max-height: 26rem; overflow: auto; }}
-pre.codeblock code {{ color: {INK} !important; background: transparent !important; }}
-code {{ color: {INK} !important; background: {BLK} !important; padding: 0 .3rem; }}
-.io {{ font-size: .85rem; color: #e6c9cd; }}
-.shiny-progress .progress-text {{ background: {BLK} !important; color: {INK} !important; }}
+.flow .step small {{ color: #555555; }}
+.flow .arrow {{ align-self: center; color: {RED}; font-size: 1.2rem; }}
+pre.codeblock {{ background: #f7f7f7 !important; color: {INK} !important; border-left: 4px solid {RED}; padding: .8rem; font-size: .8rem; max-height: 26rem; overflow: auto; }}
+code {{ color: {INK} !important; }}
+.io {{ font-size: .85rem; color: #555555; }}
+.text-muted {{ color: #555555 !important; }}
 """
 
 sidebar = ui.sidebar(
@@ -429,11 +445,6 @@ app_ui = ui.page_navbar(
         ),
     ),
     ui.nav_panel(
-        "Backtest",
-        ui.card(ui.card_header("Growth of ₹1: buy & hold vs holding only in Bull"), ui.output_plot("plot_equity", height="340px")),
-        ui.card(ui.card_header("All stocks, selected dates and settings"), ui.output_table("tbl_backtest")),
-    ),
-    ui.nav_panel(
         "Data & features",
         ui.layout_columns(
             ui.card(ui.card_header("Feature distributions"),
@@ -442,7 +453,19 @@ app_ui = ui.page_navbar(
             ui.card(ui.card_header("Daily return statistics"), ui.output_table("tbl_stats")),
         ),
     ),
+    ui.nav_panel(
+        "EDA",
+        ui.p("Exploratory charts from the data-fitted HMM, which learns its states from the three training stocks (2022–2024). "
+             "They show what the data itself separates, as a check on the final model's design. Produced by Modelling/make_figures.py."),
+        *[ui.card(ui.card_header(title), ui.output_image(oid, height="auto"), ui.p(note, class_="text-muted small"))
+          for oid, _, title, note in EDA_FIGS],
+    ),
     code_tab(),
+    ui.nav_panel(
+        "Backtest",
+        ui.card(ui.card_header("Growth of ₹1: buy & hold vs holding only in Bull"), ui.output_plot("plot_equity", height="340px")),
+        ui.card(ui.card_header("All stocks, selected dates and settings"), ui.output_table("tbl_backtest")),
+    ),
     ui.nav_panel(
         "Final model",
         ui.card(ui.card_header("Final model parameters"), ui.output_table("tbl_params")),
@@ -629,7 +652,7 @@ def server(input, output, session):
         d = cur()
         fig, ax = plt.subplots()
         ax.plot(d.Date, np.exp(d.ret.fillna(0).cumsum()), color=GREY, lw=1.6, label="Buy & hold")
-        ax.plot(d.Date, np.exp(d.strat.fillna(0).cumsum()), color=INK, lw=1.8, label="Hold only in Bull")
+        ax.plot(d.Date, np.exp(d.strat.fillna(0).cumsum()), color=RED, lw=1.8, label="Hold only in Bull")
         ax.axhline(1, color=GREY, ls="--", lw=0.8)
         ax.set_ylabel("Growth of ₹1")
         ax.set_title(f"{input.stock()} (cost 0.1% per trade)")
@@ -751,7 +774,7 @@ def server(input, output, session):
         d = need_custom()[1]
         fig, ax = plt.subplots()
         ax.plot(d.Date, np.exp(d.ret.fillna(0).cumsum()), color=GREY, lw=1.6, label="Buy & hold")
-        ax.plot(d.Date, np.exp(d.strat.fillna(0).cumsum()), color=INK, lw=1.8, label="Hold only in Bull")
+        ax.plot(d.Date, np.exp(d.strat.fillna(0).cumsum()), color=RED, lw=1.8, label="Hold only in Bull")
         ax.axhline(1, color=GREY, ls="--", lw=0.8)
         ax.legend(loc="upper left")
         return fig
@@ -810,11 +833,11 @@ def server(input, output, session):
         m = pd.crosstab(a.predicted, a.actual, normalize="all").reindex(index=CLASSES, columns=CLASSES, fill_value=0)
         fig, ax = plt.subplots()
         from matplotlib.colors import LinearSegmentedColormap
-        ax.imshow(m.values, cmap=LinearSegmentedColormap.from_list("rb", ["#7d1a26", BLK]), vmin=0, vmax=max(m.values.max(), 0.01))
+        ax.imshow(m.values, cmap=LinearSegmentedColormap.from_list("wr", ["#ffffff", RED]), vmin=0, vmax=max(m.values.max(), 0.01))
         for i in range(3):
             for j in range(3):
                 v = m.values[i, j]
-                ax.text(j, i, f"{v:.0%}", ha="center", va="center", color=INK,
+                ax.text(j, i, f"{v:.0%}", ha="center", va="center", color="#ffffff" if v > m.values.max() * 0.6 else INK,
                         fontweight="bold" if i == j else "normal")
         ax.set_xticks(range(3), CLASSES)
         ax.set_yticks(range(3), [f"{k} ({LABEL_MAP[k].lower()})" for k in ["Bull", "Chop", "Bear"]])
@@ -891,9 +914,9 @@ def server(input, output, session):
         ax.plot(hist.Date, hist.Close, color=INK, lw=1.4, label="Actual")
         x = [d.Date.iloc[-1], *f["dates"]]
         band = lambda i: [f["last"], *f["q"][i]]
-        ax.fill_between(x, band(0), band(4), color=BLK, alpha=0.35, lw=0, label="90% range")
-        ax.fill_between(x, band(1), band(3), color=BLK, alpha=0.6, lw=0, label="50% range")
-        ax.plot(x, band(2), color=INK, lw=1.8, ls="--", label="Median path")
+        ax.fill_between(x, band(0), band(4), color=RED, alpha=0.15, lw=0, label="90% range")
+        ax.fill_between(x, band(1), band(3), color=RED, alpha=0.32, lw=0, label="50% range")
+        ax.plot(x, band(2), color=RED, lw=1.8, label="Median path")
         ax.axvline(d.Date.iloc[-1], color=GREY, lw=0.8, ls="--")
         ax.set_ylabel("Price")
         ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
@@ -927,5 +950,24 @@ def server(input, output, session):
         with ui.Progress() as p:
             p.set(message="Testing the forecast on 2025–26…")
             return reliability()
+    # ---- EDA figures (from Modelling/make_figures.py)
+    def _eda_image(fname, max_width):
+        path = os.path.join(RESULTS_DIR, fname)
+        if not os.path.exists(path):
+            raise SilentException()
+        return {"src": path, "style": f"width:100%; max-width:{max_width}; height:auto; display:block; margin:auto;", "alt": fname}
+
+    @render.image(delete_file=False)
+    def eda_fig1():
+        return _eda_image(EDA_FIGS[0][1], "100%")
+
+    @render.image(delete_file=False)
+    def eda_fig2():
+        return _eda_image(EDA_FIGS[1][1], "520px")
+
+    @render.image(delete_file=False)
+    def eda_fig3():
+        return _eda_image(EDA_FIGS[2][1], "760px")
+
 
 app = App(app_ui, server)
