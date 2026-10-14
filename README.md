@@ -8,7 +8,7 @@ Tested on ITC, Maruti Suzuki and TCS, with daily data from Oct 2022 to Sep 2026.
 
 ## How it works
 
-**1. Features** (`Data_extractor/extract.py`) — three numbers per day, all built from past prices only:
+**1. Features** (`Data_extractor/extract.py`): three numbers per day, all built from past prices only:
 
 | Feature | What it measures | How |
 |---|---|---|
